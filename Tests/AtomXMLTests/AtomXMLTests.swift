@@ -11,7 +11,7 @@ final class AtomXMLTests: XCTestCase {
         let parser = try AtomXMLParser(string: xml)
         let node = try parser.parse()
         
-        let expectedNode = AtomXMLNode(name: "root")
+        let expectedNode = AtomXMLNode(name: "root", path: ["root"])
         
         XCTAssertEqual(node, expectedNode)
     }
@@ -42,7 +42,8 @@ final class AtomXMLTests: XCTestCase {
             attributes: [
                 "attr1": "value1",
                 "attr2": "value2",
-            ]
+            ],
+            path: ["root"]
         )
         
         XCTAssertEqual(node, expectedNode)
@@ -57,7 +58,7 @@ final class AtomXMLTests: XCTestCase {
         let parser = try AtomXMLParser(string: xml)
         let node = try parser.parse()
         
-        let expectedNode = AtomXMLNode(name: "root")
+        let expectedNode = AtomXMLNode(name: "root", path: ["root"])
         
         XCTAssertEqual(node, expectedNode)
     }
@@ -84,7 +85,7 @@ final class AtomXMLTests: XCTestCase {
         let parser = try AtomXMLParser(string: xml)
         let node = try parser.parse()
         
-        let expectedNode = AtomXMLNode(name: "root")
+        let expectedNode = AtomXMLNode(name: "root", path: ["root"])
         
         XCTAssertEqual(node, expectedNode)
     }
@@ -103,7 +104,8 @@ final class AtomXMLTests: XCTestCase {
             attributes: [
                 "attr1": "value1",
                 "attr2": "value2",
-            ]
+            ],
+            path: ["root"]
         )
         
         XCTAssertEqual(node, expectedNode)
@@ -120,7 +122,8 @@ final class AtomXMLTests: XCTestCase {
         
         let expectedNode = AtomXMLNode(
             name: "root",
-            content: "This is content"
+            content: "This is content",
+            path: ["root"]
         )
         
         XCTAssertEqual(node, expectedNode)
@@ -141,7 +144,8 @@ final class AtomXMLTests: XCTestCase {
                 "attr1": "value1",
                 "attr2": "value2",
             ],
-            content: "This is content"
+            content: "This is content",
+            path: ["root"]
         )
         
         XCTAssertEqual(node, expectedNode)
@@ -161,9 +165,10 @@ final class AtomXMLTests: XCTestCase {
         
         let expectedNode = AtomXMLNode(
             name: "root",
+            path: ["root"],
             children: [
-                AtomXMLNode(name: "child"),
-                AtomXMLNode(name: "child"),
+                AtomXMLNode(name: "child", path: ["root", "child"]),
+                AtomXMLNode(name: "child", path: ["root", "child"]),
             ]
         )
         
@@ -184,18 +189,21 @@ final class AtomXMLTests: XCTestCase {
         
         let expectedNode = AtomXMLNode(
             name: "root",
+            path: ["root"],
             children: [
                 AtomXMLNode(
                     name: "child",
                     attributes: [
                         "attr1": "value1",
-                    ]
+                    ],
+                    path: ["root", "child"]
                 ),
                 AtomXMLNode(
                     name: "child",
                     attributes: [
                         "attr2": "value2",
-                    ]
+                    ],
+                    path: ["root", "child"]
                 ),
             ]
         )
@@ -217,9 +225,10 @@ final class AtomXMLTests: XCTestCase {
         
         let expectedNode = AtomXMLNode(
             name: "root",
+            path: ["root"],
             children: [
-                AtomXMLNode(name: "child", content: "This is content"),
-                AtomXMLNode(name: "child"),
+                AtomXMLNode(name: "child", content: "This is content", path: ["root", "child"]),
+                AtomXMLNode(name: "child", path: ["root", "child"]),
             ]
         )
         
@@ -240,13 +249,15 @@ final class AtomXMLTests: XCTestCase {
         
         let expectedNode = AtomXMLNode(
             name: "root",
+            path: ["root"],
             children: [
-                AtomXMLNode(name: "child", content: "This is content"),
+                AtomXMLNode(name: "child", content: "This is content", path: ["root", "child"]),
                 AtomXMLNode(
                     name: "child",
                     attributes: [
                         "attr": "value",
-                    ]
+                    ],
+                    path: ["root", "child"]
                 ),
             ]
         )
@@ -265,7 +276,8 @@ final class AtomXMLTests: XCTestCase {
          
          let expectedNode = AtomXMLNode(
              name: "root",
-             content: "SwiftData"
+             content: "SwiftData",
+             path: ["root"]
          )
          
          XCTAssertEqual(node, expectedNode)
@@ -284,7 +296,8 @@ final class AtomXMLTests: XCTestCase {
          
          let expectedNode = AtomXMLNode(
              name: "root",
-             content: "SwiftData"
+             content: "SwiftData",
+             path: ["root"]
          )
          
          XCTAssertEqual(node, expectedNode)
@@ -316,7 +329,8 @@ final class AtomXMLTests: XCTestCase {
              <span class="s-keyword">var</span> text: <span class="s-type">String</span>
              
              Another paragraph[&#8230;]
-             """
+             """,
+             path: ["root"]
          )
          
          dump(node)
@@ -324,6 +338,48 @@ final class AtomXMLTests: XCTestCase {
          
          XCTAssertEqual(node, expectedNode)
      }
+    
+    func test_parsesPath() throws {
+        let xml = """
+        <?xml version="1.0" encoding="utf-8"?>
+        <root>
+            <child>This is content</child>
+            <child>
+                <subchild>
+                    <subsubchild />
+                    <subsubchild />
+                </subchild>
+            </child>
+        </root>
+        """
+        
+        let parser = try AtomXMLParser(string: xml)
+        let node = try parser.parse()
+        
+        let expectedNode = AtomXMLNode(
+            name: "root",
+            path: ["root"],
+            children: [
+                AtomXMLNode(name: "child", content: "This is content", path: ["root", "child"]),
+                AtomXMLNode(
+                    name: "child",
+                    path: ["root", "child"],
+                    children: [
+                        AtomXMLNode(
+                            name: "subchild",
+                            path: ["root", "child", "subchild"],
+                            children: [
+                                AtomXMLNode(name: "subsubchild", path: ["root", "child", "subchild", "subsubchild"]),
+                                AtomXMLNode(name: "subsubchild", path: ["root", "child", "subchild", "subsubchild"]),
+                            ]
+                        )
+                    ]
+                ),
+            ]
+        )
+        
+        XCTAssertEqual(node, expectedNode)
+    }
 }
 
 extension AtomXMLNode: Equatable {

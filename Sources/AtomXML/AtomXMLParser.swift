@@ -93,7 +93,12 @@ extension AtomXMLParser: XMLParserDelegate {
     
     private func startNewNode(name: String, attributes: [String: String]) {
         resetAccumulatedContent()
-        let newNode = AtomXMLNode(name: name, attributes: attributes)
+        let path = stack.last?.path ?? AtomXMLPath()
+        let newNode = AtomXMLNode(
+            name: name,
+            attributes: attributes,
+            path: path.appending(componentName: name)
+        )
         stack.append(newNode)
     }
     
